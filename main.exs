@@ -1,22 +1,29 @@
-#!/usr/bin/env elixir
-
-defmodule Combination do
-
-  def c2(list, _fun) when length(list) < 2, do: :ok
-
-  def c2([a|tail], fun) do
-    Enum.each(tail, fn(b)-> fun.(a, b) end)
-    c2(tail, fun)
+defmodule Solution do
+  def read(path) do
+    path
+    |> File.stream!()
+    |> Enum.map(&String.trim/1)
+    |> Enum.map(&parse/1)
   end
+
+  def parse(input) do
+    [spec, pass] = String.split(input, ": ")
+    [range, <<char>>] = String.split(spec, " ")
+    [min, max] =
+      range
+      |> String.split("-")
+      |> Enum.map(&String.to_integer/1)
+
+    {min..max, char, pass}
+  end
+
+  def validate({range, char, pass}) do
+    count = for <<^char <- pass>>, reduce: 0, do: (n -> n + 1)
+    count in range
+  end
+
 end
 
-nums = "./list.txt"
-       |> File.stream!([], :line)
-       |> Stream.map(&String.trim/1)
-       |> Enum.map(&String.to_integer/1)
+data = Solution.read("list.txt")
 
-Combination.c2(nums, fn(a, b)->
-  if a + b == 2020 do
-    IO.inspect(a * b, label: "Report Repair Result")
-  end
-end)
+IO.inspect(Enum.count(data, &Solution.validate/1), label: "Number")
